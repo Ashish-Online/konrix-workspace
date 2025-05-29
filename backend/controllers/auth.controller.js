@@ -33,8 +33,15 @@ export const signup = async (req, res) => {
       await newUser.save();
       const tok = generateTokenAndSetSession(req, newUser._id, res);
       // console.log("Token generated and token:", tok);
-      res.status(201).json({ message: "User created successfully" }, tok);
-
+      res.status(200).json({
+      message: "User registered successfully",
+      user: {
+        token: tok,
+        id: newUser._id,
+        fullname: newUser.fullname,
+        email: newUser.email,
+      },
+    });
     } else {
       res.status(400).json({ message: "Invalid user data" });
     }

@@ -122,14 +122,7 @@ class APICore {
    * post given data to url
    */
   create = (url: string, data: any) => {
-    try {
-      return axios.post(url, data).then((res) => {
-        sessionStorage.setItem("konrix_user", JSON.stringify({ user: res.data.user}));
-        // console.log("res: ", res);
-      });
-    } catch (error) {
-      console.log(error, "error");
-    }
+    return axios.post(url, data);
   };
 
   /**
@@ -190,22 +183,31 @@ class APICore {
     return axios.patch(url, formData, config);
   };
 
-  isUserAuthenticated = () => {
-    const user = this.getLoggedInUser();
-    console.log("user: ", user);
+isUserAuthenticated = () => {
+  const user = this.getLoggedInUser();
+  console.log("user: ", user);
 
-    if (!user) {
-      return false;
-    }
+  if (!user || !user.token) {
+    console.warn("No token found");
+    return false;
+  }
+
+  try {
     const decoded: any = jwtDecode(user.token);
     const currentTime = Date.now() / 1000;
+
     if (decoded.exp < currentTime) {
       console.warn("access token expired");
       return false;
-    } else {
-      return true;
     }
-  };
+
+    return true;
+  } catch (err) {
+    console.error("Failed to decode token:", err);
+    return false;
+  }
+};
+
 
   setLoggedInUser = (session: any) => {
     console.log("session: ", session);
