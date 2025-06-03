@@ -5,8 +5,6 @@ import generateTokenAndSetSession from "../utils/generateToken.js";
 export const signup = async (req, res) => {
   try {
     const { fullname, email, password } = req.body;
-    console.log("Received signup request with data:", req.body);
-
     if (!fullname || !email || !password) {
       return res.status(400).json({ message: "All fields are required from signup" });
     }
@@ -78,19 +76,17 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("Error during login:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
-
-export const logout = async (req, res) => {
-  try {
-    res.cookie("jwt", "", { maxAge: 0 });
+export const logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.log("Error destroying session:", err);
+      return res.status(500).json({ message: "Error logging out" });
+    }
     res.status(200).json({ message: "Logged out successfully" });
-  } catch (error) {
-    console.log("Error in logout controller", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+  });
 };
+

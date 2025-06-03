@@ -50,20 +50,13 @@ const AUTH_SESSION_KEY = "konrix_user";
  * @param {*} token
  */
 const setAuthorization = (token: string | null) => {
-  console.log("setAuthorization", token);
-  if (token) axios.defaults.headers.common["Authorization"] = "JWT " + token;
+  if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   else delete axios.defaults.headers.common["Authorization"];
 };
 
 const getUserFromCookie = () => {
-  // console.log("getUserFromCookie sessionStorage: ", sessionStorage);
-  const user = sessionStorage.getItem(AUTH_SESSION_KEY);
-  // console.log("getUserFromCookie: ", user);
-
+  const user = sessionStorage.getItem("UserDetails");
   return user ? (typeof user == "object" ? user : JSON.parse(user)) : null;
-
-  // const raw = sessionStorage.getItem(AUTH_SESSION_KEY);
-  // return raw ? JSON.parse(raw) : null;
 };
 class APICore {
   /**
@@ -72,13 +65,11 @@ class APICore {
   get = (url: string, params: any) => {
     let response;
     if (params) {
-      console.log("params: ", params);
       const queryString = params
         ? Object.keys(params)
             .map((key) => key + "=" + params[key])
             .join("&")
         : "";
-      console.log("queryString", queryString);
       response = axios.get(`${url}?${queryString}`, params);
     } else {
       response = axios.get(`${url}`, params);
@@ -183,39 +174,26 @@ class APICore {
     return axios.patch(url, formData, config);
   };
 
-isUserAuthenticated = () => {
-  const user = this.getLoggedInUser();
-  console.log("user: ", user);
+  isUserAuthenticated = () => {
+    const user = this.getLoggedInUser();
 
-  if (!user || !user.token) {
-    console.warn("No token found");
-    return false;
-  }
-
-  try {
+    if (!user) {
+      return false;
+    }
     const decoded: any = jwtDecode(user.token);
     const currentTime = Date.now() / 1000;
-
     if (decoded.exp < currentTime) {
       console.warn("access token expired");
       return false;
+    } else {
+      return true;
     }
-
-    return true;
-  } catch (err) {
-    console.error("Failed to decode token:", err);
-    return false;
-  }
-};
-
+  };
 
   setLoggedInUser = (session: any) => {
-    console.log("session: ", session);
-
-    if (session)
-      sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+    if (session) sessionStorage.setItem("UserDetails", JSON.stringify(session));
     else {
-      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      sessionStorage.removeItem("UserDetails");
     }
   };
   /**
@@ -226,10 +204,7 @@ isUserAuthenticated = () => {
   };
 
   setUserInSession = (modifiedUser: any) => {
-    const userInfo = sessionStorage.getItem(AUTH_SESSION_KEY);
-    console.log("userInfo: ", userInfo);
-
-    console.log("userInfo: ", userInfo);
+    const userInfo = sessionStorage.getItem("UserDetails");
 
     if (userInfo) {
       const { token, user } = JSON.parse(userInfo);
@@ -243,8 +218,6 @@ Check if token available in session
 */
 const user = getUserFromCookie();
 if (user) {
-  console.log("User found in session: ", user);
-
   const { token } = user;
   if (token) {
     setAuthorization(token);

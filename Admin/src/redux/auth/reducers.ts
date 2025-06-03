@@ -42,9 +42,7 @@ interface State {
 }
 
 const Auth = (state: State = INIT_STATE, action: any): any => {
-  console.log("State in reducer: ", state);
-  console.log("action in reducer: ", action.type);
-  
+
   switch (action.type) {
     case AuthActionTypes.API_RESPONSE_SUCCESS:
       switch (action.payload.actionType) {

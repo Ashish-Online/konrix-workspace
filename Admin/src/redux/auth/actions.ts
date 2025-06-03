@@ -29,7 +29,6 @@ export const authApiResponseSuccess = (
   actionType: string,
   data: UserData | {}
 ): AuthActionType => {
-  console.log(`[authApiResponseSuccess] ActionType: ${actionType}, Data:`, data);
   return {
     type: AuthActionTypes.API_RESPONSE_SUCCESS,
     payload: { actionType, data },
@@ -45,8 +44,6 @@ export const authApiResponseError = (
 });
 
 export const loginUser = (email: string, password: string): AuthActionType => {
-console.log("AuthActionTypes.LOGIN_USER: ", AuthActionTypes.LOGIN_USER);
-
   return {
     type: AuthActionTypes.LOGIN_USER,
     payload: { email, password },

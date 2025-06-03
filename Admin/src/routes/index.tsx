@@ -4,7 +4,7 @@ import { Navigate, Route, RouteProps } from "react-router-dom";
 
 // components
 import PrivateRoute from "./PrivateRoute";
-import TicketsApp from "../pages/apps/Tickets";
+import UsersApp from "../pages/apps/Users";
 
 // lazy load all the views
 
@@ -148,13 +148,13 @@ const calendarAppRoutes: RoutesProps = {
   header: "Apps",
 };
 
-const ticketsAppRoutes: RoutesProps = {
-  path: "/apps/tickets",
-  name: "Tickets",
+const UsersAppRoutes: RoutesProps = {
+  path: "/apps/users",
+  name: "Users",
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "tickets",
-  element: <TicketsApp />,
+  element: <UsersApp />,
   header: "Apps",
 };
 
@@ -206,7 +206,7 @@ const projectAppRoutes: RoutesProps = {
   ]
 };
 
-const appRoutes = [calendarAppRoutes, ticketsAppRoutes, projectAppRoutes, kanbanAppRoutes, fileAppRoutes];
+const appRoutes = [calendarAppRoutes, UsersAppRoutes, projectAppRoutes, kanbanAppRoutes, fileAppRoutes];
 
 // pages
 const customPagesRoutes = {

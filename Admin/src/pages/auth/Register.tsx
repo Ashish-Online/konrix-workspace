@@ -56,9 +56,7 @@ const Register = () => {
   /*
  * handle form submission
  */
-  const onSubmit = (formData: UserData) => {
-    console.log("formData: ", formData);
-    
+  const onSubmit = (formData: UserData) => {    
     dispatch(
       signupUser(formData.fullname, formData.email, formData.password)
     );
