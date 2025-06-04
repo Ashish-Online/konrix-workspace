@@ -9,7 +9,7 @@ const TaskItem = ({ task }: TaskItemProps) => {
   return (
     <>
       <div className="flex justify-between items-center">
-        <h4 className={`flex justify-between items-center h-6 px-3 text-xs font-semibold rounded-full ${task.variant}`}>{task.category}</h4>
+        <h4 className={`flex justify-between items-center h-6 px-3 text-xs font-semibold rounded-full ${task.variant}`}>{task.categoryName}</h4>
 
         <div className="text-xs">{task.dueDate}</div>
       </div>
@@ -24,7 +24,6 @@ const TaskItem = ({ task }: TaskItemProps) => {
           <i className="mgc_attachment_line rotate-45 text-base"></i>
           <span className="ms-1 leading-none">{task.attachments}</span>
         </div>
-        <img className="w-6 h-6 ms-auto rounded-full" src={task.userAvatar} />
       </div>
     </>
   )

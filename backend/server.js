@@ -8,6 +8,7 @@ import connectToMongoDB from "./db/connectToMongoDB.js";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import kanbanRoutes from "./routes/kanban.routes.js";
 import session from "express-session";
 
 const app = express();
@@ -45,6 +46,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/kanban", kanbanRoutes);
 
 app.listen(PORT, () => {
   connectToMongoDB();
