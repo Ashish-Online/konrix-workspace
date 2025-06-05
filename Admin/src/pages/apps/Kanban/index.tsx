@@ -100,6 +100,11 @@ const KanbanApp = () => {
     dueDate: Date;
   } | null>(null);
 
+    // ——— MODAL FOR “Add Category” ———
+  const [newCategoryModal, setNewCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState(""); 
+
+
   // ——— DYNAMIC USERS STATE ———
   const [users, setUsers] = useState<{ _id: string; fullname: string }[]>([]);
 
@@ -112,51 +117,6 @@ const KanbanApp = () => {
     reset,
     formState: { errors },
   } = methods;
-
-  // ——— ON MOUNT: FETCH TASKS & USERS ———
-  // useEffect(() => {
-  //   // Fetch Kanban tasks
-  //   axios
-  //     .post("http://localhost:5000/api/kanban/gettasks")
-  //     .then((res) => {
-  //       const allTasks: TaskTypes[] = res.data.map((t: any) => ({
-  //         id: t._id,
-  //         title: t.title,
-  //         status: t.status,
-  //         category: t.category,
-  //         variant: t.priority,
-  //         dueDate: t.dueDate,
-  //         comments: t.comments,
-  //         attachments: t.attachments,
-  //       }));
-  //       setState(bucketTasks(allTasks));
-  //       setTotalTasks(allTasks.length);
-  //     })
-  //     .catch((err) => console.error("Error fetching Kanban tasks:", err));
-
-  //   // Fetch all users for the “Assign To” dropdown:
-  //   const getUsers = async () => {
-  //     const res = await axios.get(`http://localhost:5000/api/users`);
-  //     return res.data;
-  //   };
-  //   axios
-  //     .get("http://localhost:5000/api/users")
-  //     .then((res) => {
-  //       // res.data is [ { _id, fullname, … }, … ]
-  //       setUsers(
-  //         res.data.map((u: any) => ({
-  //           _id: u._id,
-  //           fullname: u.fullname,
-  //         }))
-  //       );
-  //       {
-  //         console.log("Fetched users:", res.data);
-  //       }
-  //     })
-  //     .catch((err) => console.error("Error fetching users:", err));
-  // }, []);
-
-  // ——— ON MOUNT: Fetch categories, users, and tasks ———
 
   useEffect(() => {
     // 1) Fetch ALL categories from backend:
@@ -324,9 +284,6 @@ const KanbanApp = () => {
     }
   };
 
-  // ——— DRAG & DROP + getList, reorder, move … same as before ———
-
-  // --------------------------------------
   // —— DRAG & DROP HELPERS (unchanged) ——
   // --------------------------------------
   const reorder = (list: any[], startIndex: number, endIndex: number) => {
@@ -357,7 +314,7 @@ const KanbanApp = () => {
     return columns[categoryId] || [];
   };
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
     if (!destination) return;
 
@@ -385,6 +342,18 @@ const KanbanApp = () => {
     newCols[fromCatId] = sourceList;
     newCols[toCatId] = destList;
     setColumns(newCols);
+
+    // 4) Update the task’s `category` in the database:
+    try {
+      await axios.put(
+        `http://localhost:5000/api/kanban/updatetask/${movedItem.id}`,
+        { category: toCatId }
+      );
+      fetchAllTasks();
+    } catch (err) {
+      console.error("Error updating task category:", err);
+      // Optional: you could revert local move if the API call fails
+    }
   };
 
   // --------------------------------------
@@ -409,31 +378,15 @@ const KanbanApp = () => {
         {/*— New “Add Category” button —*/}
         <button
           className="btn btn-sm bg-secondary text-white ms-2"
-          onClick={async () => {
-            // Prompt the user for a category name:
-            const name = prompt("Enter new category name:");
-            if (!name || !name.trim()) {
-              alert("Category name cannot be empty.");
-              return;
-            }
-
-            try {
-              // POST to /api/kanban/addcategory
-              const res = await axios.post(
-                "http://localhost:5000/api/kanban/addcategory",
-                { name: name.trim() }
-              );
-              // On success, re-fetch categories so UI updates:
-              await fetchCategories();
-            } catch (err: any) {
-              console.error("Error creating category:", err);
-              alert("Failed to create category. See console for details.");
-            }
+          onClick={() => {
+            setNewCategoryName("");
+            setNewCategoryModal(true);
           }}
           type="button"
         >
           Add Category
         </button>
+
       </PageBreadcrumb>
 
       <div className="grid h-full w-full">
@@ -643,6 +596,89 @@ const KanbanApp = () => {
           </form>
         </div>
       </ModalLayout>
+            {/* ——— MODAL FOR “Add Category” ——— */}
+      <ModalLayout
+        showModal={newCategoryModal}
+        toggleModal={() => {
+          setNewCategoryModal((prev) => !prev);
+          setNewCategoryName("");
+        }}
+        panelClassName="min-w-[400px] card !overflow-visible"
+      >
+        <div className="flex justify-between items-center py-3 px-6 border-b dark:border-gray-700">
+          <h3 className="font-medium text-gray-600 dark:text-white text-base">
+            Add New Category
+          </h3>
+          <button
+            className="inline-flex flex-shrink-0 justify-center items-center h-8 w-8 dark:text-gray-200"
+            type="button"
+            onClick={() => {
+              setNewCategoryModal(false);
+              setNewCategoryName("");
+            }}
+          >
+            <i className="mgc_close_line text-lg"></i>
+          </button>
+        </div>
+        <div className="py-3 px-6">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!newCategoryName.trim()) {
+                return;
+              }
+              try {
+                await axios.post(
+                  "http://localhost:5000/api/kanban/addcategory",
+                  { name: newCategoryName.trim() }
+                );
+                setNewCategoryModal(false);
+                setNewCategoryName("");
+                // Re-fetch categories so UI updates:
+                await fetchCategories();
+              } catch (err) {
+                console.error("Error creating category:", err);
+              }
+            }}
+          >
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="category-name"
+                  className="block text-sm font-semibold text-gray-500"
+                >
+                  Category Name
+                </label>
+                <input
+                  id="category-name"
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  className="form-input w-full mt-1"
+                  placeholder="Enter category name"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  className="btn bg-light text-gray-800 hover:bg-gray-200"
+                  type="button"
+                  onClick={() => {
+                    setNewCategoryModal(false);
+                    setNewCategoryName("");
+                  }}
+                >
+                  Cancel
+                </button>
+                <button className="btn bg-secondary text-white hover:bg-secondary/80" type="submit">
+                  Create
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </ModalLayout>
+
     </>
   );
 };
