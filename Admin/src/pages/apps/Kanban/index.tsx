@@ -1,5 +1,3 @@
-// Admin/src/pages/apps/Kanban/index.tsx
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -60,14 +58,8 @@ const schemaResolver = yupResolver(
   yup.object().shape({
     title: yup.string().required("Title is required"),
     category: yup.string().required("Category is required"),
-    comments: yup
-      .number()
-      .typeError("Comments must be a number")
-      .required("Comments count is required"),
-    attachments: yup
-      .number()
-      .typeError("Attachments must be a number")
-      .required("Attachments count is required"),
+    comments: yup.number().typeError("Comments must be a number"),
+    attachments: yup.number().typeError("Attachments must be a number"),
     priority: yup.string().required("Priority is required"),
     assignTo: yup.string().required("Assignee is required"),
   })
@@ -77,6 +69,10 @@ const schemaResolver = yupResolver(
 // ——— KANBAN APP COMPONENT ——————
 // ------------------------------------
 const KanbanApp = () => {
+  // ——— EDIT MODE STATE ———
+  // When non‐null, that tells us we’re editing instead of creating.
+  const [editingTask, setEditingTask] = useState<TaskTypes | null>(null);
+
   // ——— REPLACE the old “state” + “bucketTasks” logic with this ———
 
   // 1) Keep a local array of all Category documents:
@@ -100,10 +96,9 @@ const KanbanApp = () => {
     dueDate: Date;
   } | null>(null);
 
-    // ——— MODAL FOR “Add Category” ———
+  // ——— MODAL FOR “Add Category” ———
   const [newCategoryModal, setNewCategoryModal] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState(""); 
-
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   // ——— DYNAMIC USERS STATE ———
   const [users, setUsers] = useState<{ _id: string; fullname: string }[]>([]);
@@ -169,14 +164,14 @@ const KanbanApp = () => {
         id: t._id,
         title: t.title,
         status: t.status,
-        // Extract both the ObjectId and the name from the populated `t.category` object:
         categoryId: t.category?._id ?? "",
         categoryName: t.category?.name ?? "",
         variant: t.priority,
         dueDate: t.dueDate,
         comments: t.comments,
         attachments: t.attachments,
-        userAvatar: "", // or fill in if you have one
+        userAvatar: "",
+        assignedToId: t.assignedTo?._id ?? "", // ← NEW
       }));
 
       // Build a fresh mapping from catId → tasks[]
@@ -212,6 +207,7 @@ const KanbanApp = () => {
 
   // ——— OPEN “ADD TASK” MODAL ———
   function openNewTaskForm() {
+    setEditingTask(null); 
     setNewTaskDetails({
       status: "New",
       queue: "newTasks",
@@ -228,61 +224,54 @@ const KanbanApp = () => {
     }
   }
 
-  // ——— HANDLE “CREATE NEW TASK” ———
-  const handleNewTask = async (values: any) => {
-    if (!newTaskDetails) return;
+  // ——— HANDLE “CREATE OR EDIT TASK” ———
+const handleSaveTask = async (values: any) => {
+  if (!newTaskDetails) return;
 
-    const parsedUser = JSON.parse(values.assignTo);
-    const parsedCat = JSON.parse(values.category);
+  const parsedUser = JSON.parse(values.assignTo);
+  const parsedCat = JSON.parse(values.category);
 
-    const payload = {
-      title: values.title,
-      category: parsedCat.id, // <-- FIXED
-      comments: values.comments,
-      attachments: values.attachments,
-      priority: values.priority,
-      status: newTaskDetails.status,
-      dueDate: newTaskDetails.dueDate.toISOString().split("T")[0],
-      assignedTo: parsedUser.id,
-    };
-
-    try {
-      // 1) Create new task (POST is correct here)
-      await axios.post("http://localhost:5000/api/kanban/addtask", payload);
-
-      // 2) Close modal + reset form
-      toggleNewTaskModal();
-      reset();
-
-      // 3) Re-fetch via GET, not POST
-      const res = await axios.get("http://localhost:5000/api/kanban/gettasks");
-      const allTasks: TaskTypes[] = res.data.map((t: any) => ({
-        id: t._id,
-        title: t.title,
-        status: t.status,
-        categoryId: t.category?._id ?? "",
-        categoryName: t.category?.name ?? "",
-        variant: t.priority,
-        dueDate: t.dueDate,
-        comments: t.comments,
-        attachments: t.attachments,
-        userAvatar: "",
-      }));
-
-      // 4) Bucket into columns
-      const newCols: { [key: string]: TaskTypes[] } = {};
-      categories.forEach((c) => (newCols[c._id] = []));
-      allTasks.forEach((task) => {
-        const catId = task.categoryId.toString();
-        if (!newCols[catId]) newCols[catId] = [];
-        newCols[catId].push(task);
-      });
-      setColumns(newCols);
-      setTotalTasks(allTasks.length);
-    } catch (err) {
-      console.error("Error creating new task:", err);
-    }
+  const payload = {
+    title: values.title,
+    category: parsedCat.id,
+    comments: values.comments,
+    attachments: values.attachments,
+    priority: values.priority,
+    status: newTaskDetails.status,
+    dueDate: newTaskDetails.dueDate.toISOString().split("T")[0],
+    assignedTo: parsedUser.id,
   };
+
+  try {
+    if (editingTask) {
+      // ——— EDIT MODE: perform PUT to update existing task ———
+      await axios.put(
+        `http://localhost:5000/api/kanban/updatetask/${editingTask.id}`,
+        payload
+      );
+    } else {
+      // ——— CREATE MODE: perform POST to add a new task ———
+      await axios.post("http://localhost:5000/api/kanban/addtask", payload);
+    }
+
+    // 1) Close modal, reset form state
+    setNewTaskModal(false);
+    reset();
+    setNewTaskDetails(null);
+
+    // 2) Clear editingTask flag (so next time it’s truly “create”)
+    setEditingTask(null);
+
+    // 3) Re‐fetch all tasks so UI reflects the change
+    await fetchAllTasks();
+  } catch (err) {
+    console.error(
+      editingTask ? "Error updating task:" : "Error creating new task:",
+      err
+    );
+  }
+};
+
 
   // —— DRAG & DROP HELPERS (unchanged) ——
   // --------------------------------------
@@ -355,6 +344,29 @@ const KanbanApp = () => {
       // Optional: you could revert local move if the API call fails
     }
   };
+  /**
+   * Open the “Create/Edit Task” modal in EDIT mode:
+   *   – prefill the form with the task’s existing values
+   *   – store editingTask so `handleSaveTask` knows we’re updating
+   */
+function startEditTask(task: TaskTypes, categoryId: string) {
+  setEditingTask(task);
+  setNewTaskDetails({
+    status: task.status,
+    queue: categoryId as keyof StateType,
+    dueDate: new Date(task.dueDate),
+  });
+  methods.reset({
+    title: task.title,
+    category: JSON.stringify({ id: task.categoryId }),
+    comments: task.comments,
+    attachments: task.attachments,
+    priority: task.variant,
+    assignTo: JSON.stringify({ id: task.assignedToId }),
+  });
+  setNewTaskModal(true);
+}
+
 
   // --------------------------------------
   // —— RENDER ——
@@ -386,7 +398,6 @@ const KanbanApp = () => {
         >
           Add Category
         </button>
-
       </PageBreadcrumb>
 
       <div className="grid h-full w-full">
@@ -414,16 +425,26 @@ const KanbanApp = () => {
                           >
                             {(provided, snapshot) => (
                               <div
-                                className="card p-4 cursor-pointer"
+                                className="card p-4 cursor-pointer relative"
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                               >
+                                {/* ——— Edit “pencil” icon in top‐right corner ——— */}
+                                <button
+                                  className="absolute top-2 right-2 text-gray-500 mb-2 hover:text-gray-800"
+                                  onClick={() => startEditTask(item, cat._id)}
+                                >
+                                  <i className="mgc_edit_line text-lg"></i>
+                                </button>
+
+                                {/* ——— The existing card contents ——— */}
                                 <TaskItem task={item} />
                               </div>
                             )}
                           </Draggable>
                         ))}
+
                         {provided.placeholder}
                       </div>
                     </div>
@@ -443,8 +464,9 @@ const KanbanApp = () => {
       >
         <div className="flex justify-between items-center py-3 px-6 border-b dark:border-gray-700">
           <h3 className="font-medium text-gray-600 dark:text-white text-base">
-            Create New Task
+            {editingTask ? "Edit Task" : "Create New Task"}
           </h3>
+
           <button
             className="inline-flex flex-shrink-0 justify-center items-center h-8 w-8 dark:text-gray-200"
             type="button"
@@ -454,7 +476,7 @@ const KanbanApp = () => {
           </button>
         </div>
         <div className="py-3 px-6 overflow-y-auto">
-          <form onSubmit={handleSubmit(handleNewTask)}>
+          <form onSubmit={handleSubmit(handleSaveTask)}>
             <div className="grid sm:grid-cols-2 grid-cols-1 gap-6">
               <FormInput
                 name="title"
@@ -596,7 +618,7 @@ const KanbanApp = () => {
           </form>
         </div>
       </ModalLayout>
-            {/* ——— MODAL FOR “Add Category” ——— */}
+      {/* ——— MODAL FOR “Add Category” ——— */}
       <ModalLayout
         showModal={newCategoryModal}
         toggleModal={() => {
@@ -670,7 +692,10 @@ const KanbanApp = () => {
                 >
                   Cancel
                 </button>
-                <button className="btn bg-secondary text-white hover:bg-secondary/80" type="submit">
+                <button
+                  className="btn bg-secondary text-white hover:bg-secondary/80"
+                  type="submit"
+                >
                   Create
                 </button>
               </div>
@@ -678,7 +703,6 @@ const KanbanApp = () => {
           </form>
         </div>
       </ModalLayout>
-
     </>
   );
 };

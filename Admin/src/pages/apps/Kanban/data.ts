@@ -9,20 +9,21 @@ import avatar6 from '../../../assets/images/users/avatar-6.jpg'
 // Admin/src/pages/apps/Kanban/data.ts
 
 export interface TaskTypes {
-  id: string;            // Mongo _id
+  id: string;             // MongoDB _id of the task
   title: string;
   status: string;
-
-  // Add both:
-  categoryId: string;    // the ObjectId of the category (for bucketing)
-  categoryName: string;  // the human-readable name (for display)
-
+  categoryId: string;     // the ObjectId of its category
+  categoryName: string;   // the human‐readable category name
   variant: string;
   dueDate: string;
   comments: number;
   attachments: number;
   userAvatar: string;
+  assignedToId: string;   // ← NEW: so we know which user it’s assigned to
+  fullname: string; // ← NEW: the user’s full name
 }
+
+
 
 
 interface AssigneeTypes {
@@ -80,36 +81,36 @@ const tasks: TaskTypes[] = [
 ];
 
 const assignees: AssigneeTypes[] = [
-  {
-    id: 1,
-    title: 'Coderthemes',
-    image: avatar1,
-  },
-  {
-    id: 2,
-    title: 'Kenil Sudani',
-    image: avatar2,
-  },
-  {
-    id: 3,
-    title: 'Arya Stark',
-    image: avatar3,
-  },
-  {
-    id: 4,
-    title: 'Jon Snow',
-    image: avatar4,
-  },
-  {
-    id: 5,
-    title: 'Sansa Stark',
-    image: avatar5,
-  },
-  {
-    id: 6,
-    title: 'Daenerys Targaryen',
-    image: avatar6,
-  },
+  // {
+  //   id: 1,
+  //   title: 'Coderthemes',
+  //   image: avatar1,
+  // },
+  // {
+  //   id: 2,
+  //   title: 'Kenil Sudani',
+  //   image: avatar2,
+  // },
+  // {
+  //   id: 3,
+  //   title: 'Arya Stark',
+  //   image: avatar3,
+  // },
+  // {
+  //   id: 4,
+  //   title: 'Jon Snow',
+  //   image: avatar4,
+  // },
+  // {
+  //   id: 5,
+  //   title: 'Sansa Stark',
+  //   image: avatar5,
+  // },
+  // {
+  //   id: 6,
+  //   title: 'Daenerys Targaryen',
+  //   image: avatar6,
+  // },
 ]
 
 export { tasks, assignees };
