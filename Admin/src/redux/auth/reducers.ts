@@ -17,6 +17,7 @@ interface UserData {
   password: string;
   firstName: string;
   lastName: string;
+  isOrg: boolean;
   role: string;
   token: string;
 }

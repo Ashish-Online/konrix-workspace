@@ -24,6 +24,7 @@ interface UserData {
     password: string;
     fullname: string;
     email: string;
+    isOrg: boolean;
   };
   type: string;
 }
@@ -72,13 +73,18 @@ function* logout(): SagaIterator {
 }
 
 function* signup({
-  payload: { fullname, email, password },
+  payload: { fullname, email, password, isOrg },
 }: UserData): SagaIterator {
   try {
-    const response = yield call(signupApi, { fullname, email, password });
-    const user = response.data;
+    const response = yield call(signupApi, { fullname, email, password, isOrg });
+    // now `response.data.user` is the object we want
+    const user = response.data.user;
+
+    // save entire user (token, id, fullname, email, isOrg, org, role) into sessionStorage
     api.setLoggedInUser(user);
-    setAuthorization(user["token"]);
+    setAuthorization(user.token);
+
+    // dispatch the success action with the full user payload
     yield put(authApiResponseSuccess(AuthActionTypes.SIGNUP_USER, user));
   } catch (error: any) {
     const errorMessage =

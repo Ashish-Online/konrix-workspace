@@ -1,11 +1,3 @@
-// images
-import avatar1 from '../../../assets/images/users/avatar-1.jpg'
-import avatar2 from '../../../assets/images/users/avatar-2.jpg'
-import avatar3 from '../../../assets/images/users/avatar-3.jpg'
-import avatar4 from '../../../assets/images/users/avatar-4.jpg'
-import avatar5 from '../../../assets/images/users/avatar-5.jpg'
-import avatar6 from '../../../assets/images/users/avatar-6.jpg'
-
 // Admin/src/pages/apps/Kanban/data.ts
 
 export interface TaskTypes {
@@ -23,17 +15,13 @@ export interface TaskTypes {
   fullname: string; // ← NEW: the user’s full name
 }
 
-
-
-
 interface AssigneeTypes {
   id: number;
   title: string;
   image: string;
 }
 
-const tasks: TaskTypes[] = [
-  
+const tasks: TaskTypes[] = [  
   // {
   //   id: 1,
   //   title: "iOS App home page",
@@ -56,28 +44,6 @@ const tasks: TaskTypes[] = [
   //   attachments: 1,
   //   userAvatar: avatar4,
   // },
-  // {
-  //   id: 3,
-  //   title: "Invite user to a project",
-  //   status: "Inprogress",
-  //   category: "Backend",
-  //   variant: "text-success bg-success/25",
-  //   dueDate: "12 Jul 2023",
-  //   comments: 8,
-  //   attachments: 6,
-  //   userAvatar: avatar2,
-  // },
-  // {
-  //   id: 15,
-  //   title: "Hire new Developer",
-  //   status: "New",
-  //   category: "Wordpress",
-  //   variant: "text-success bg-success/25",
-  //   dueDate: "14 Jul 2023",
-  //   comments: 46,
-  //   attachments: 17,
-  //   userAvatar: avatar3,
-  // },
 ];
 
 const assignees: AssigneeTypes[] = [
@@ -90,26 +56,6 @@ const assignees: AssigneeTypes[] = [
   //   id: 2,
   //   title: 'Kenil Sudani',
   //   image: avatar2,
-  // },
-  // {
-  //   id: 3,
-  //   title: 'Arya Stark',
-  //   image: avatar3,
-  // },
-  // {
-  //   id: 4,
-  //   title: 'Jon Snow',
-  //   image: avatar4,
-  // },
-  // {
-  //   id: 5,
-  //   title: 'Sansa Stark',
-  //   image: avatar5,
-  // },
-  // {
-  //   id: 6,
-  //   title: 'Daenerys Targaryen',
-  //   image: avatar6,
   // },
 ]
 

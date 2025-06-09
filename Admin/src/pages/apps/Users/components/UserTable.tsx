@@ -22,7 +22,7 @@ const UserTable = ({ users, onDelete, onEdit }: Props) => {
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
           {users.map((user, idx) => (
-            <tr key={user.id}>
+            <tr key={user.id ?? idx}>
               <td className="whitespace-nowrap py-4 ps-4 pe-3 text-sm font-medium text-gray-900 dark:text-gray-200"><b>{idx + 1}</b></td>
               <td className="whitespace-nowrap px-3 py-3.5 text-sm">
                 <div className="font-medium text-gray-900 dark:text-gray-200 ms-4">{user.fullname}</div>

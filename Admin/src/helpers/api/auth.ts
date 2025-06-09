@@ -4,9 +4,7 @@ const api = new APICore();
 
 // account
 function login(params: { email: string; password: string }) {
-  // console.log("Email: ", params);
   const baseUrl = "/auth/login/";
-  
   return api.create(`${baseUrl}`, params);
 }
 
@@ -15,7 +13,7 @@ function logout() {
   return api.create(`${baseUrl}`, {});
 }
 
-function signup(params: { fullname: string; password: string, email: string }) {
+function signup(params: { fullname: string; password: string, email: string, isOrg: boolean }) {
   const baseUrl = "/auth/register/";
   return api.create(`${baseUrl}`, params);
 }

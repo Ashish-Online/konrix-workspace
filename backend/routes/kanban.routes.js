@@ -5,8 +5,8 @@ import {getTask, createTask, createCategory, updateTask, getCategories} from '..
 import { protectRoute } from '../middleware/protectRoute.js';
   
 router.get('/gettasks', protectRoute, getTask);
-router.post('/addtask', protectRoute, createTask);
 router.get('/getcategories', protectRoute, getCategories);
+router.post('/addtask', protectRoute, createTask);
 router.put('/updatetask/:id', protectRoute, updateTask); 
 router.post('/addcategory', protectRoute, createCategory);
 

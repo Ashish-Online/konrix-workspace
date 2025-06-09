@@ -36,21 +36,6 @@ interface StateType {
   doneTasks: TaskTypes[];
 }
 
-//
-// Helper: take an array of raw tasks from the API and
-// bucket them into our six state arrays based on `status`.
-//
-function bucketTasks(allTasks: TaskTypes[]): StateType {
-  return {
-    newTasks: allTasks.filter((t) => t.status === "New"),
-    unassignedTasks: allTasks.filter((t) => t.status === "Unassigned"),
-    todoTasks: allTasks.filter((t) => t.status === "Todo"),
-    inprogressTasks: allTasks.filter((t) => t.status === "Inprogress"),
-    reviewTasks: allTasks.filter((t) => t.status === "Review"),
-    doneTasks: allTasks.filter((t) => t.status === "Done"),
-  };
-}
-
 // -------------------------------------------------
 // ——— VALIDATION SCHEMA (using yup) —
 // -------------------------------------------------

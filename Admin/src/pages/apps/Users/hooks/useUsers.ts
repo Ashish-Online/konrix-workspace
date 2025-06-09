@@ -12,10 +12,10 @@ export const useGetUsers = () => {
     try {
       const rawUsers = await getUsers();
       const formatted = rawUsers.map((user: any) => ({
-        id: user._id,
+        id: user.id,
         fullname: user.fullname,
         email: user.email,
-        created_date: new Date(user.createdAt).toLocaleDateString(),
+        created_date: user.created_date,
       }));
       setUserDetails(formatted);
     } catch (err) {

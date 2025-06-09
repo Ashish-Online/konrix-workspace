@@ -20,6 +20,7 @@ interface UserData {
   password: string;
   firstName: string;
   lastName: string;
+  isOrg: boolean;
   role: string;
   token: string;
 }
@@ -59,10 +60,13 @@ export const signupUser = (
   fullname: string,
   email: string,
   password: String,
+  isOrg: boolean
 ): AuthActionType => {
+  console.log("Signup User Action", { fullname, email, password, isOrg });
+  
   return {
   type: AuthActionTypes.SIGNUP_USER,
-  payload: { fullname, email, password },
+  payload: { fullname, email, password, isOrg },
 }};
 
 export const forgotPassword = (username: string): AuthActionType => ({

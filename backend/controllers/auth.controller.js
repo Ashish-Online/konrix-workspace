@@ -2,11 +2,14 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 import generateTokenAndSetSession from "../utils/generateToken.js";
 
+import { v4 as uuidv4 } from "uuid";
+
 export const signup = async (req, res) => {
   try {
-    const { fullname, email, password } = req.body;
-    if (!fullname || !email || !password) {
-      return res.status(400).json({ message: "All fields are required from signup" });
+    const { fullname, email, password, isOrg } = req.body;
+    
+    if (!fullname || !email || !password || typeof isOrg !== "boolean") {
+      return res.status(400).json({ message: "fullname, email, password, and isOrg are required" });
     }
 
     // Check if the user already exists
@@ -15,42 +18,49 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: "This user already exists!" });
     }
 
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create a new user
-    const newUser = new User({
+    // Generate a new user
+    const newUserData = {
       fullname,
       email,
       password: hashedPassword,
-    });
+    };
 
-    //save on the database
-    if (newUser){
-      //Generate a JWT token
-      await newUser.save();
-      const tok = generateTokenAndSetSession(req, newUser._id, res);
-      // console.log("Token generated and token:", tok);
-      res.status(200).json({
+    if (isOrg) {
+      newUserData.org = uuidv4();
+      newUserData.role = "ADMIN";
+    } else {
+      newUserData.role = "USER";
+      newUserData.org = null;
+    }
+
+    const newUser = new User(newUserData);
+    await newUser.save();
+
+    // Generate token + set session
+    const tok = generateTokenAndSetSession(req, newUser._id, res);
+
+    return res.status(200).json({
       message: "User registered successfully",
       user: {
         token: tok,
         id: newUser._id,
         fullname: newUser.fullname,
         email: newUser.email,
+        org: newUser.org,
+        role: newUser.role,
       },
     });
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
-    }
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
     console.error("Error during signup:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const login = async (req, res) => {
-  
   try {
     const { email, password } = req.body;
 
@@ -89,4 +99,3 @@ export const logout = (req, res) => {
     res.status(200).json({ message: "Logged out successfully" });
   });
 };
-
