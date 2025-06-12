@@ -21,6 +21,8 @@ const Dashboard = React.lazy(() => import("../pages/dashboard/"));
 const CalendarApp = React.lazy(() => import('../pages/apps/Calendar'));
 const FileManagerApp = React.lazy(() => import('../pages/apps/FileManager'));
 const KanbanApp = React.lazy(() => import('../pages/apps/Kanban'));
+const NDisplay = React.lazy(() => import('../pages/apps/NDisplay'));
+const WidgetPreview = React.lazy(() => import('../pages/apps/NDisplay/pages/WidgetPreview'));
 const ProjectCreate = React.lazy(() => import('../pages/apps/Project/Create'));
 const ProjectDetail = React.lazy(() => import('../pages/apps/Project/Detail'));
 const ProjectList = React.lazy(() => import('../pages/apps/Project/List'));
@@ -178,6 +180,26 @@ const kanbanAppRoutes: RoutesProps = {
   header: "Apps",
 };
 
+const nDisplayRoutes: RoutesProps = {
+  path: "/apps/ndisplay",
+  name: "nDisplay",
+  route: PrivateRoute,
+  roles: ["Admin"],
+  icon: "kanban",
+  element: <NDisplay/>,
+  header: "Apps",
+};
+
+const widgetPreviewRoutes: RoutesProps = {
+  path: "/apps/ndisplay/devicepreview",
+  name: "widgetPreview",
+  route: PrivateRoute,
+  roles: ["Admin"],
+  icon: "widget",
+  element: <WidgetPreview/>,
+  header: "Apps",
+};
+
 const projectAppRoutes: RoutesProps = {
   path: "/apps/project",
   name: "Project",
@@ -206,7 +228,7 @@ const projectAppRoutes: RoutesProps = {
   ]
 };
 
-const appRoutes = [calendarAppRoutes, UsersAppRoutes, projectAppRoutes, kanbanAppRoutes, fileAppRoutes];
+const appRoutes = [calendarAppRoutes, UsersAppRoutes, projectAppRoutes, kanbanAppRoutes, nDisplayRoutes, widgetPreviewRoutes, fileAppRoutes];
 
 // pages
 const customPagesRoutes = {

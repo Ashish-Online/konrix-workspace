@@ -62,32 +62,39 @@ const MENU_ITEMS: MenuItemTypes[] = [
     icon: 'mgc_task_2_line',
     url: '/apps/kanban',
   },
-  // {
-  //   key: 'apps-project',
-  //   label: 'Project',
-  //   isTitle: false,
-  //   icon: 'mgc_building_2_line',
-  //   children: [
-  //     {
-  //       key: 'project-list',
-  //       label: 'List',
-  //       url: '/apps/project/list',
-  //       parentKey: 'apps-project',
-  //     },
-  //     {
-  //       key: 'project-detail',
-  //       label: 'Detail',
-  //       url: '/apps/project/detail',
-  //       parentKey: 'apps-project',
-  //     },
-  //     {
-  //       key: 'project-create',
-  //       label: 'Create',
-  //       url: '/apps/project/create',
-  //       parentKey: 'apps-project',
-  //     },
-  //   ]
-  // },
+  {
+    key: 'apps-ndisplay',
+    label: 'nDisplay',
+    isTitle: false,
+    icon: 'mgc_task_2_line',
+    url: '/apps/ndisplay',
+  },
+  {
+    key: 'apps-project',
+    label: 'Project',
+    isTitle: false,
+    icon: 'mgc_building_2_line',
+    children: [
+      // {
+      //   key: 'project-list',
+      //   label: 'List',
+      //   url: '/apps/project/list',
+      //   parentKey: 'apps-project',
+      // },
+      // {
+      //   key: 'project-detail',
+      //   label: 'Detail',
+      //   url: '/apps/project/detail',
+      //   parentKey: 'apps-project',
+      // },
+      {
+        key: 'project-create',
+        label: 'Create',
+        url: '/apps/project/create',
+        parentKey: 'apps-project',
+      },
+    ]
+  },
   // {
   //   key: 'custom',
   //   label: 'Custom',
