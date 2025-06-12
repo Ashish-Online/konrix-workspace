@@ -1,30 +1,57 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Clock from "./widgets/Clock";
+import Album from "./widgets/Album";
 import Weather from "./widgets/Weather";
+
+export type WidgetType = "Album" | "Weather";
+export type Position =
+  | "top-left" | "top-center" | "top-right"
+  | "center-left" | "center"     | "center-right"
+  | "bottom-left"| "bottom-center" | "bottom-right";
 
 interface WidgetDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  onAdd: (
+    type: WidgetType,
+    position: Position,
+    color?: string,
+    imageFile?: File
+  ) => void;
 }
 
-const WidgetDrawer: React.FC<WidgetDrawerProps> = ({ isOpen, onClose }) => {
-  const colors: string[] = [
-    "#f28b82",
-    "#fbbc04",
-  ];
-const [widgetType, setWidgetType] = React.useState<string>("calendar");
+const colors = ["#f28b82", "#fbbc04"];
 
- const renderWidgetSelection = () => {
-    switch (widgetType) {
-      case "Weather":
-        return <div><Weather location="Ahmedabad"/></div>;
-      case "Clock":
-        return <div><Clock/></div>;
-      default:
-        return <div>Default</div>;
-    }
+const WidgetDrawer: React.FC<WidgetDrawerProps> = ({
+  isOpen,
+  onClose,
+  onAdd,
+}) => {
+  const [type, setType] = React.useState<WidgetType>("Album");
+  const [position, setPosition] = React.useState<Position>("top-left");
+  const [color, setColor] = React.useState<string>(colors[0]);
+  const [imageFile, setImageFile] = React.useState<File | null>(null);
+
+  const renderPreview = () =>
+    type === "Album" ? (
+      <Album image={imageFile ? URL.createObjectURL(imageFile) : ""} />
+    ) : (
+      <Weather location="Ahmedabad" />
+    );
+
+  const handleAdd = () => {
+    onAdd(
+      type,
+      position,
+      type === "Weather" ? color : undefined,
+      type === "Album" ? imageFile! : undefined
+    );
+    onClose();
+    setImageFile(null);
   };
+
+  const isAddDisabled =
+    type === "Album" ? imageFile === null : false;
 
   return (
     <AnimatePresence>
@@ -36,80 +63,92 @@ const [widgetType, setWidgetType] = React.useState<string>("calendar");
           transition={{ duration: 0.3 }}
           className="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-xl z-50 overflow-y-auto"
         >
-          {/* Header */}
-          <div className="drop-shadow-xl flex justify-between items-center py-5 px-4 border-b border-gray-300">
-            <h3 className="font-bold text-gray-800 text-lg">Widget Details</h3>
-            <button onClick={onClose} className="text-red-500 hover:text-red-700">
-              <svg
-                width="35"
-                height="35"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-              </svg>
-            </button>
-          </div>
-
-          {/* Body */}
+          {/* header omitted */}
           <div className="p-4 space-y-4">
             <div>
               <label>Widget Type</label>
               <select
-                value={widgetType}
-                onChange={(e) => setWidgetType(e.target.value)}
+                value={type}
+                onChange={e => {
+                  const val = e.target.value as WidgetType;
+                  setType(val);
+                  setImageFile(null);
+                  if (val === "Weather") setColor(colors[0]);
+                }}
                 className="w-full border p-2 rounded mt-1"
               >
+                <option value="Album">Album</option>
                 <option value="Weather">Weather</option>
-                <option value="Clock">Clock</option>
               </select>
             </div>
 
             <div>
               <label>Initial Position</label>
-              <select className="w-full border p-2 rounded mt-1">
-                <option value="top-left">Top Left</option>
-                <option value="top-center">Top Center</option>
-                <option value="top-right">Top Right</option>
-                <option value="center-left">Center Left</option>
-                <option value="center">Center</option>
-                <option value="center-right">Center Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="bottom-center">Bottom Center</option>
-                <option value="bottom-right">Bottom Right</option>
+              <select
+                value={position}
+                onChange={e =>
+                  setPosition(e.target.value as Position)
+                }
+                className="w-full border p-2 rounded mt-1"
+              >
+                {[
+                  "top-left","top-center","top-right",
+                  "center-left","center","center-right",
+                  "bottom-left","bottom-center","bottom-right",
+                ].map(pos => (
+                  <option key={pos} value={pos}>
+                    {pos.replace(/-/g," ").replace(/\b\w/g,l=>l.toUpperCase())}
+                  </option>
+                ))}
               </select>
             </div>
 
+            {type === "Album" ? (
+              <div>
+                <label>Upload Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e =>
+                    setImageFile(e.target.files ? e.target.files[0] : null)
+                  }
+                  className="w-full mt-1"
+                />
+              </div>
+            ) : (
+              <div>
+                <label>Color</label>
+                <div className="flex gap-2 mt-1">
+                  {colors.map(c => (
+                    <div
+                      key={c}
+                      onClick={() => setColor(c)}
+                      className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                        c === color ? "border-black" : "border-white"
+                      }`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
-              <label>Color</label>
-              <div className="flex gap-2 flex-wrap mt-1">
-                {colors.map((color: string) => (
-                  <div
-                    key={color}
-                    className="w-8 h-8 rounded-full cursor-pointer border-2"
-                    style={{
-                      backgroundColor: color,
-                      borderColor: color === "#cbf0f8" ? "black" : "white",
-                    }}
-                  ></div>
-                ))}
+              <label className="font-semibold">Preview</label>
+              <div className="mt-2 border p-2">
+                {renderPreview()}
               </div>
             </div>
 
-            {/* Preview */}
-            <div>
-  <label className="font-semibold">Preview</label>
-  {renderWidgetSelection()}
-</div>
-
-
-            <button className="bg-blue-600 text-white px-4 py-2 rounded w-full">
+            <button
+              onClick={handleAdd}
+              disabled={isAddDisabled}
+              className={`w-full px-4 py-2 rounded text-white ${
+                isAddDisabled ?
+                  "bg-gray-400 cursor-not-allowed" :
+                  "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
               Add to Board
             </button>
           </div>
