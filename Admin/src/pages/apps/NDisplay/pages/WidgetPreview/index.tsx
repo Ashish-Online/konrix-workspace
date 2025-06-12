@@ -4,14 +4,17 @@ import { MdKeyboardBackspace, MdClose } from "react-icons/md";
 import WidgetDrawer, { WidgetType, Position } from "./components/WidgetDrawer";
 import Album from "./components/widgets/Album";
 import Weather from "./components/widgets/Weather";
+import PreviewOverlay from "./components/PreviewOverlay";
 
 // a single widget instance on the board:
-interface BoardWidget {
+export interface BoardWidget {
   id: string;
   type: WidgetType;
   position: Position;
   color?: string;
   imageUrl?: string;
+  x: number;
+  y: number;
   width: number;
   height: number;
 }
@@ -32,13 +35,13 @@ const WidgetPreview = () => {
   const [showDrawer, setShowDrawer] = useState(false);
   const [boardWidgets, setBoardWidgets] = useState<BoardWidget[]>([]);
   const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
+  const [showPreview, setShowPreview] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!parentRef.current) return;
     const { width, height } = parentRef.current.getBoundingClientRect();
     setParentSize({ width, height });
-    // optionally: observe with ResizeObserver for dynamic container-resizing
   }, []);
 
   const handleAddWidget = (
@@ -48,10 +51,14 @@ const WidgetPreview = () => {
     imageFile?: File
   ) => {
     const id = Date.now().toString();
+    const rel = positionMap[position];
+    const w0 = 200, h0 = 150;
+    const x = rel.x * (parentSize.width - w0);
+    const y = rel.y * (parentSize.height - h0);
     const imageUrl = imageFile ? URL.createObjectURL(imageFile) : undefined;
     setBoardWidgets(ws => [
       ...ws,
-      { id, type, position, color, imageUrl, width: 200, height: 150 },
+      { id, type, position, color, imageUrl, x, y, width: w0, height: h0 },
     ]);
     setShowDrawer(false);
   };
@@ -72,6 +79,14 @@ const WidgetPreview = () => {
         >
           + Widget
         </button>
+        {boardWidgets.length > 0 && (
+          <button
+            onClick={() => setShowPreview(true)}
+            className="ml-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Preview
+          </button>
+        )}
       </div>
 
       <WidgetDrawer
@@ -84,63 +99,63 @@ const WidgetPreview = () => {
         ref={parentRef}
         className="parent-container mt-5 w-full h-[80vh] relative border border-gray-300 rounded-lg overflow-hidden"
       >
-        {boardWidgets.map(w => {
-          const rel = positionMap[w.position];
-          const initialX = rel.x * parentSize.width;
-          const initialY = rel.y * parentSize.height;
+        {boardWidgets.map(w => (
+          <Rnd
+            key={w.id}
+            size={{ width: w.width, height: w.height }}
+            position={{ x: w.x, y: w.y }}
+            bounds="parent"
+            minWidth={100}
+            minHeight={100}
+            enableResizing={{ bottom: true, bottomRight: true, right: true }}
+            onDragStop={(_, d) => {
+              setBoardWidgets(ws =>
+                ws.map(x =>
+                  x.id === w.id ? { ...x, x: d.x, y: d.y } : x
+                )
+              );
+            }}
+            onResizeStop={(e, dir, ref, delta, pos) => {
+              setBoardWidgets(ws =>
+                ws.map(x =>
+                  x.id === w.id
+                    ? {
+                        ...x,
+                        width: ref.offsetWidth,
+                        height: ref.offsetHeight,
+                        x: pos.x,
+                        y: pos.y,
+                      }
+                    : x
+                )
+              );
+            }}
+            className="bg-slate-100 border-blue-400 border-2 rounded p-2"
+          >
+            <div className="relative w-full h-full">
+              <button
+                onClick={() => handleDelete(w.id)}
+                className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow hover:bg-red-100"
+              >
+                <MdClose size={16} className="text-red-600" />
+              </button>
 
-          return (
-            <Rnd
-              key={w.id}
-              size={{ width: w.width, height: w.height }}
-              default={{
-                x: initialX,
-                y: initialY,
-                width: w.width,
-                height: w.height,
-              }}
-              bounds="parent"
-              minWidth={100}
-              minHeight={100}
-              enableResizing={{ bottom: true, bottomRight: true, right: true }}
-              onResizeStop={(e, dir, ref) => {
-                setBoardWidgets(ws =>
-                  ws.map(x =>
-                    x.id === w.id
-                      ? {
-                          ...x,
-                          width: parseInt(ref.style.width, 10),
-                          height: parseInt(ref.style.height, 10),
-                        }
-                      : x
-                  )
-                );
-              }}
-              className="bg-slate-100 border-blue-400 border-2 rounded p-2"
-            >
-              {/* container to position the delete button */}
-              <div className="relative w-full h-full">
-                {/* Delete button in the top-right corner */}
-                <button
-                  onClick={() => handleDelete(w.id)}
-                  className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow hover:bg-red-100"
-                >
-                  <MdClose size={16} className="text-red-600" />
-                </button>
-
-                {/* actual widget */}
-                {w.type === "Album" ? (
-                  <Album image={w.imageUrl!} />
-                ) : (
-                  <Weather
-                    location="Ahmedabad"
-                  />
-                )}
-              </div>
-            </Rnd>
-          );
-        })}
+              {w.type === "Album" ? (
+                <Album image={w.imageUrl!} />
+              ) : (
+                <Weather location="Ahmedabad"/>
+              )}
+            </div>
+          </Rnd>
+        ))}
       </div>
+
+      {showPreview && (
+        <PreviewOverlay
+          widgets={boardWidgets}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 };
