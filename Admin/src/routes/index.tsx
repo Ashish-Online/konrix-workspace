@@ -191,7 +191,7 @@ const nDisplayRoutes: RoutesProps = {
 };
 
 const widgetPreviewRoutes: RoutesProps = {
-  path: "/apps/ndisplay/devicepreview",
+  path: "/apps/ndisplay/devicepreview/:id?",
   name: "widgetPreview",
   route: PrivateRoute,
   roles: ["Admin"],
