@@ -114,7 +114,7 @@ const Weather: React.FC<WeatherProps> = ({ location, onEdit, onDelete }) => {
 
       {/* main card */}
       <div
-        className="relative rounded-2xl text-white bg-gradient-to-br from-blue-300 to-sky-400 shadow-lg flex flex-col justify-between items-center"
+        className="relative rounded-2xl h-full w-full text-white bg-gradient-to-br from-blue-300 to-sky-400 shadow-lg flex flex-col justify-between items-center"
         style={{
           width: "100%",
           height: "100%",

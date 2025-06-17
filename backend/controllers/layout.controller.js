@@ -1,43 +1,51 @@
-import Layout from '../models/layout.model.js';
+import Layout from "../models/layout.model.js";
 
 export const getLayouts = async (req, res) => {
   try {
-    const layouts = await Layout.find().sort('-created_at');
-    const parsed = layouts.map(l => ({
-      _id:      l._id,
-      widget_name: l.widget_name,
-      layout:   JSON.parse(l.layout),
-      creator:  l.creator,
-      created_at: l.created_at
+    const layouts = await Layout.find().sort("-created_at");
+
+    // build the array you actually want to send
+    const parsed = layouts.map((l) => ({
+      _id:            l._id,
+      widget_name:    l.widget_name,
+      originalCanvas: l.originalCanvas,
+      layout:         JSON.parse(l.layout),
+      creator:        l.creator,
+      created_at:     l.created_at,
     }));
-    res.status(200).json(parsed);
+
+    // send it exactly once
+    return res.status(200).json(parsed);
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Failed to fetch layouts.' });
+    return res.status(500).json({ message: "Failed to fetch layouts." });
   }
 };
 
-
 export const addLayout = async (req, res) => {
   try {
-    const { widget_name, layout } = req.body;
-    const creator = req.user._id; 
+    const { widget_name, layout, originalCanvas } = req.body;
+    const creator = req.user._id;
+
     const newLayout = await Layout.create({
       widget_name,
       layout: JSON.stringify(layout),
-      creator
+      originalCanvas,
+      creator,
     });
-    // console.log('New layout saved:', newLayout);
+
     res.status(201).json({
       _id: newLayout._id,
       widget_name: newLayout.widget_name,
+      originalCanvas: newLayout.originalCanvas,
       layout: JSON.parse(newLayout.layout),
       creator: newLayout.creator,
-      created_at: newLayout.created_at
+      created_at: newLayout.created_at,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Failed to save layout.' });
+    res.status(500).json({ message: "Failed to save layout." });
   }
 };
 
@@ -46,12 +54,12 @@ export const deleteLayout = async (req, res) => {
     const { id } = req.params;
     const deleted = await Layout.findByIdAndDelete(id);
     if (!deleted) {
-      return res.status(404).json({ message: 'Layout not found' });
+      return res.status(404).json({ message: "Layout not found" });
     }
-    res.status(200).json({ message: 'Deleted successfully' });
+    res.status(200).json({ message: "Deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Failed to delete layout.' });
+    res.status(500).json({ message: "Failed to delete layout." });
   }
 };
 
@@ -60,19 +68,42 @@ export const getLayoutById = async (req, res) => {
     const { id } = req.params;
     const layoutDoc = await Layout.findById(id);
     if (!layoutDoc) {
-      return res.status(404).json({ message: 'Layout not found' });
+      return res.status(404).json({ message: "Layout not found" });
     }
     // parse JSON string back into array
     const layout = JSON.parse(layoutDoc.layout);
-    res.status(200).json({
+    res.json({
       _id: layoutDoc._id,
       widget_name: layoutDoc.widget_name,
-      layout,
+      originalCanvas: layoutDoc.originalCanvas,
+      layout: JSON.parse(layoutDoc.layout),
       creator: layoutDoc.creator,
-      created_at: layoutDoc.created_at
+      created_at: layoutDoc.created_at,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error fetching layout' });
+    res.status(500).json({ message: "Error fetching layout" });
+  }
+};
+
+export const updateLayout = async (req, res) => {
+  try {
+    const { layout, originalCanvas } = req.body;
+    const doc = await Layout.findByIdAndUpdate(
+      req.params.id,
+      { layout: JSON.stringify(layout), originalCanvas },
+      { new: true }
+    );
+    if (!doc) return res.status(404).json({ message: "Not found" });
+    res.status(200).json({
+      _id: doc._id,
+      widget_name: doc.widget_name,
+      layout: JSON.parse(doc.layout),
+      creator: doc.creator,
+      created_at: doc.created_at,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update layout." });
   }
 };

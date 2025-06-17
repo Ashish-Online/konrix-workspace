@@ -1,14 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { IoMdHome } from "react-icons/io";
-import axios from "axios";
 import { MdDelete } from "react-icons/md";
+import axios from "axios";
 
+import Album from "../NDisplay/pages/WidgetPreview/components/widgets/Album";
+import Weather from "../NDisplay/pages/WidgetPreview/components/widgets/Weather";
+ 
 type Layout = {
   _id: string;
   widget_name: string;
   created_at: string;
-  layout: any[];
+  layout: Array<{
+    id: string;
+    type: "Album" | "Weather";
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    imageUrl?: string;
+  }>;
 };
 
 const NDisplay = () => {
@@ -20,9 +31,10 @@ const NDisplay = () => {
     const fetchLayouts = async () => {
       setLoading(true);
       try {
-        const { data } = await axios.get<Layout[]>("http://localhost:5000/api/layouts/", {
-          withCredentials: true,
-        });
+        const { data } = await axios.get<Layout[]>(
+          "http://localhost:5000/api/layouts/",
+          { withCredentials: true }
+        );
         setLayouts(data);
       } catch (err) {
         console.error(err);
@@ -36,7 +48,7 @@ const NDisplay = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this layout?")) return;
     try {
-      await axios.delete(`/layouts/delete/${id}`, {
+      await axios.delete(`/api/layouts/delete/${id}`, {
         withCredentials: true,
       });
       setLayouts((ls) => ls.filter((l) => l._id !== id));
@@ -87,62 +99,72 @@ const NDisplay = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="py-4 text-center">Loading…</td>
+                  <td colSpan={4} className="py-4 text-center">
+                    Loading…
+                  </td>
                 </tr>
               ) : layouts.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-4 text-center">No layouts found.</td>
-                </tr>
-              ) : layouts.map((l) => (
-                <tr key={l._id} className="text-center">
-                  <td className="px-6 py-4 text-sm text-gray-800">
-                    {l.widget_name}
+                  <td colSpan={4} className="py-4 text-center">
+                    No layouts found.
                   </td>
-                  {/* PREVIEW CELL */}
-                  <td className="px-6 py-4">
-                    <div
-                      onClick={() => navigate(`/apps/ndisplay/devicepreview/${l._id}`)}
-                      className="w-[120px] h-[80px] border rounded overflow-hidden cursor-pointer mx-auto"
-                    >
+                </tr>
+              ) : (
+                layouts.map((l) => (
+                  <tr key={l._id} className="text-center">
+                    <td className="px-6 py-4 text-sm text-gray-800">
+                      {l.widget_name}
+                    </td>
+                    {/* PREVIEW CELL */}
+                    <td className="px-6 py-4">
                       <div
-                        className="relative w-full h-full"
-                        style={{ transform: "scale(0.12)", transformOrigin: "top left" }}
+                        onClick={() =>
+                          navigate(`/apps/ndisplay/devicepreview/${l._id}`)
+                        }
+                        className="w-[120px] h-[80px] border rounded overflow-hidden object-contain cursor-pointer mx-auto"
                       >
-                        {l.layout.map((w, i) => (
-                          <div
-                            key={i}
-                            className="absolute"
-                            style={{
+                        <div
+                          className="relative w-full h-full"
+                          style={{
+                            transform: "scale(0.12)",
+                            transformOrigin: "top left",
+                          }}
+                        >
+                          {l.layout.map((w, i) => {
+                            const style = {
+                              position: "absolute" as const,
                               top: w.y,
                               left: w.x,
                               width: w.width,
-                              height: w.height
-                            }}
-                          >
-                            {/* render the widget statically */}
-                            {w.type === "Album" ? (
-                              <img src={w.imageUrl} alt="" className="w-full h-full object-cover"/>
-                            ) : (
-                              <div className="w-full h-full rounded bg-blue-300"></div>
-                            )}
-                          </div>
-                        ))}
+                              height: w.height,
+                            };
+                            return (
+                              <div key={i} style={style}>
+                                {w.type === "Album" ? (
+                                  <Album image={w.imageUrl!} />
+                                ) : (
+                                  <Weather location="Ahmedabad" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-800">
-                    {new Date(l.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleDelete(l._id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <MdDelete size={20}/>
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-800">
+                      {new Date(l.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleDelete(l._id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <MdDelete size={20} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
