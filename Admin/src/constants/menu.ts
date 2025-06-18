@@ -48,13 +48,13 @@ const MENU_ITEMS: MenuItemTypes[] = [
     icon: 'mgc_user_3_line',
     url: '/apps/users',
   },
-  // {
-  //   key: 'apps-file-manager',
-  //   label: 'File Manager',
-  //   isTitle: false,
-  //   icon: 'mgc_folder_2_line',
-  //   url: '/apps/file-manager',
-  // },
+  {
+    key: 'apps-file-manager',
+    label: 'File Manager',
+    isTitle: false,
+    icon: 'mgc_folder_2_line',
+    url: '/apps/file-manager',
+  },
   {
     key: 'apps-kanban',
     label: 'Kanban Board',

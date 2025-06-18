@@ -2,21 +2,24 @@ import Layout from "../models/layout.model.js";
 
 export const getLayouts = async (req, res) => {
   try {
-    const layouts = await Layout.find().sort("-created_at");
+    const myOrg = req.user.org;
+    if (!myOrg) {
+      return res.status(400).json({ message: "User has no organization." });
+    }
+    const layouts = await Layout.find({ org: myOrg })
+      .sort("-created_at");
 
-    // build the array you actually want to send
-    const parsed = layouts.map((l) => ({
+    const parsed = layouts.map(l => ({
       _id:            l._id,
       widget_name:    l.widget_name,
       originalCanvas: l.originalCanvas,
       layout:         JSON.parse(l.layout),
       creator:        l.creator,
+      org:            l.org,
       created_at:     l.created_at,
     }));
 
-    // send it exactly once
     return res.status(200).json(parsed);
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Failed to fetch layouts." });
@@ -26,26 +29,29 @@ export const getLayouts = async (req, res) => {
 export const addLayout = async (req, res) => {
   try {
     const { widget_name, layout, originalCanvas } = req.body;
-    const creator = req.user._id;
+    const creator = req.user._id;         
+    const org     = req.user.org;
 
     const newLayout = await Layout.create({
       widget_name,
       layout: JSON.stringify(layout),
       originalCanvas,
       creator,
+      org,
     });
 
-    res.status(201).json({
-      _id: newLayout._id,
-      widget_name: newLayout.widget_name,
+    return res.status(201).json({
+      _id:            newLayout._id,
+      widget_name:    newLayout.widget_name,
       originalCanvas: newLayout.originalCanvas,
-      layout: JSON.parse(newLayout.layout),
-      creator: newLayout.creator,
-      created_at: newLayout.created_at,
+      layout:         JSON.parse(newLayout.layout),
+      creator:        newLayout.creator,
+      org:            newLayout.org,
+      created_at:     newLayout.created_at,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to save layout." });
+    return res.status(500).json({ message: "Failed to save layout." });
   }
 };
 

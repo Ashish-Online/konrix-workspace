@@ -70,7 +70,6 @@ const WidgetPreview = () => {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  // when loading existing, pull layout + originalCanvas
   useEffect(() => {
     if (!layoutId) return;
     axios
@@ -111,7 +110,7 @@ const WidgetPreview = () => {
     setSaving(true);
     try {
       await axios.put(
-        `/api/layouts/${layoutId}`,
+        `/layouts/${layoutId}`,
         { layout: boardWidgets, originalCanvas: parentSize },
         { withCredentials: true }
       );
@@ -129,8 +128,10 @@ const WidgetPreview = () => {
     if (!layoutName.trim()) return;
     setSaving(true);
     try {
+      console.log("Adding layout");
+      
       await axios.post(
-        "/api/layouts",
+        "/layouts/addlayouts",
         { widget_name: layoutName, layout: boardWidgets, originalCanvas: parentSize },
         { withCredentials: true }
       );

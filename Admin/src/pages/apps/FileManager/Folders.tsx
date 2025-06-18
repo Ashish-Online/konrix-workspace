@@ -48,14 +48,14 @@ const Folders = ({ folderFiles }: FolderFilesTypes) => {
                           <i className="mgc_pencil_2_line text-lg me-3"></i>
                           Edit
                         </Link>
-                        <Link className="flex items-center py-2 px-4 text-sm rounded text-gray-500  hover:bg-slate-100 hover:text-slate-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" to="#">
+                        {/* <Link className="flex items-center py-2 px-4 text-sm rounded text-gray-500  hover:bg-slate-100 hover:text-slate-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" to="#">
                           <i className="mgc_link_line text-lg me-3"></i>
                           Copy Link
                         </Link>
                         <Link className="flex items-center py-2 px-4 text-sm rounded text-gray-500  hover:bg-slate-100 hover:text-slate-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" to="#">
                           <i className="mgc_share_2_line text-lg me-3"></i>
                           Share
-                        </Link>
+                        </Link> */}
                         <Link className="flex items-center py-2 px-4 text-sm rounded text-gray-500  hover:bg-slate-100 hover:text-slate-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" to="#">
                           <i className="mgc_download_2_line text-lg me-3"></i>
                           Download
